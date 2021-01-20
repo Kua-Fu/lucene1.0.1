@@ -73,9 +73,11 @@ final public class PrefixQuery extends Query {
     this.reader = reader;
   }
 
-  /** Sets the boost for this term to <code>b</code>.  Documents containing
-    this term will (in addition to the normal weightings) have their score
-    multiplied by <code>boost</code>. */
+  /**
+   * Sets the boost for this term to <code>b</code>. Documents containing this
+   * term will (in addition to the normal weightings) have their score multiplied
+   * by <code>boost</code>.
+   */
   public void setBoost(float boost) {
     this.boost = boost;
   }
@@ -84,14 +86,13 @@ final public class PrefixQuery extends Query {
   public float getBoost() {
     return boost;
   }
-  
+
   final void prepare(IndexReader reader) {
     this.query = null;
     this.reader = reader;
   }
 
-  final float sumOfSquaredWeights(Searcher searcher)
-    throws IOException {
+  final float sumOfSquaredWeights(Searcher searcher) throws IOException {
     return getQuery().sumOfSquaredWeights(searcher);
   }
 
@@ -110,25 +111,23 @@ final public class PrefixQuery extends Query {
   private BooleanQuery getQuery() throws IOException {
     if (query == null) {
       BooleanQuery q = new BooleanQuery();
-      TermEnum enum = reader.terms(prefix);
+      TermEnum nEnum = reader.terms(prefix);
       try {
-	String prefixText = prefix.text();
-	String prefixField = prefix.field();
-	do {
-	  Term term = enum.term();
-	  if (term != null &&
-	      term.text().startsWith(prefixText) &&
-	      term.field() == prefixField) {
-	    TermQuery tq = new TermQuery(term);	  // found a match
-	    tq.setBoost(boost);			  // set the boost
-	    q.add(tq, false, false);		  // add to q
-	    //System.out.println("added " + term);
-	  } else {
-	    break;
-	  }
-	} while (enum.next());
+        String prefixText = prefix.text();
+        String prefixField = prefix.field();
+        do {
+          Term term = nEnum.term();
+          if (term != null && term.text().startsWith(prefixText) && term.field() == prefixField) {
+            TermQuery tq = new TermQuery(term); // found a match
+            tq.setBoost(boost); // set the boost
+            q.add(tq, false, false); // add to q
+            // System.out.println("added " + term);
+          } else {
+            break;
+          }
+        } while (nEnum.next());
       } finally {
-	enum.close();
+        nEnum.close();
       }
       query = q;
     }
