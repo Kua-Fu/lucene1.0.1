@@ -69,19 +69,19 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.OutputStream;
 import org.apache.lucene.search.Similarity;
 
-final class DocumentWriter {
+public final class DocumentWriter {
   private Analyzer analyzer;
   private Directory directory;
   private FieldInfos fieldInfos;
   private int maxFieldLength;
 
-  DocumentWriter(Directory d, Analyzer a, int mfl) {
+  public DocumentWriter(Directory d, Analyzer a, int mfl) {
     directory = d;
     analyzer = a;
     maxFieldLength = mfl;
   }
 
-  final void addDocument(String segment, Document doc) throws IOException {
+  public void addDocument(String segment, Document doc) throws IOException {
     // write field names
     fieldInfos = new FieldInfos();
     fieldInfos.add(doc);
