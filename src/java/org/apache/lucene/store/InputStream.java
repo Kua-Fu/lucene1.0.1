@@ -68,11 +68,11 @@ abstract public class InputStream implements Cloneable {
   private byte[] buffer;
   private char[] chars;
 
-  private long bufferStart = 0;			  // position in file of buffer
-  private int bufferLength = 0;			  // end of valid bytes
-  private int bufferPosition = 0;		  // next byte to read
+  private long bufferStart = 0; // position in file of buffer
+  private int bufferLength = 0; // end of valid bytes
+  private int bufferPosition = 0; // next byte to read
 
-  protected long length;			  // set by subclasses
+  protected long length; // set by subclasses
 
   /** InputStream-like methods @see java.io.InputStream */
   public final byte readByte() throws IOException {
@@ -81,25 +81,23 @@ abstract public class InputStream implements Cloneable {
     return buffer[bufferPosition++];
   }
 
-  public final void readBytes(byte[] b, int offset, int len)
-       throws IOException {
+  public final void readBytes(byte[] b, int offset, int len) throws IOException {
     if (len < BUFFER_SIZE) {
-      for (int i = 0; i < len; i++)		  // read byte-by-byte
-	b[i + offset] = (byte)readByte();
-    } else {					  // read all-at-once
+      for (int i = 0; i < len; i++) // read byte-by-byte
+        b[i + offset] = (byte) readByte();
+    } else { // read all-at-once
       long start = getFilePointer();
       seekInternal(start);
       readInternal(b, offset, len);
 
-      bufferStart = start + len;		  // adjust stream variables
+      bufferStart = start + len; // adjust stream variables
       bufferPosition = 0;
-      bufferLength = 0;				  // trigger refill() on read
+      bufferLength = 0; // trigger refill() on read
     }
   }
 
   public final int readInt() throws IOException {
-    return ((readByte() & 0xFF) << 24) | ((readByte() & 0xFF) << 16)
-         | ((readByte() & 0xFF) <<  8) |  (readByte() & 0xFF);
+    return ((readByte() & 0xFF) << 24) | ((readByte() & 0xFF) << 16) | ((readByte() & 0xFF) << 8) | (readByte() & 0xFF);
   }
 
   public final int readVInt() throws IOException {
@@ -113,7 +111,7 @@ abstract public class InputStream implements Cloneable {
   }
 
   public final long readLong() throws IOException {
-    return (((long)readInt()) << 32) | (readInt() & 0xFFFFFFFFL);
+    return (((long) readInt()) << 32) | (readInt() & 0xFFFFFFFFL);
   }
 
   public final long readVLong() throws IOException {
@@ -134,43 +132,37 @@ abstract public class InputStream implements Cloneable {
     return new String(chars, 0, length);
   }
 
-  public final void readChars(char[] buffer, int start, int length)
-       throws IOException {
+  public final void readChars(char[] buffer, int start, int length) throws IOException {
     final int end = start + length;
     for (int i = start; i < end; i++) {
       byte b = readByte();
       if ((b & 0x80) == 0)
-	buffer[i] = (char)(b & 0x7F);
+        buffer[i] = (char) (b & 0x7F);
       else if ((b & 0xE0) != 0xE0) {
-	buffer[i] = (char)(((b & 0x1F) << 6)
-		 | (readByte() & 0x3F));
-      } else 
-	buffer[i] = (char)(((b & 0x0F) << 12)
-		| ((readByte() & 0x3F) << 6)
-	        |  (readByte() & 0x3F));
+        buffer[i] = (char) (((b & 0x1F) << 6) | (readByte() & 0x3F));
+      } else
+        buffer[i] = (char) (((b & 0x0F) << 12) | ((readByte() & 0x3F) << 6) | (readByte() & 0x3F));
     }
   }
-
 
   protected final void refill() throws IOException {
     long start = bufferStart + bufferPosition;
     long end = start + BUFFER_SIZE;
-    if (end > length)				  // don't read past EOF
+    if (end > length) // don't read past EOF
       end = length;
-    bufferLength = (int)(end - start);
+    bufferLength = (int) (end - start);
     if (bufferLength == 0)
       throw new IOException("read past EOF");
 
     if (buffer == null)
-      buffer = new byte[BUFFER_SIZE];		  // allocate buffer lazily
+      buffer = new byte[BUFFER_SIZE]; // allocate buffer lazily
     readInternal(buffer, 0, bufferLength);
 
     bufferStart = start;
     bufferPosition = 0;
   }
 
-  abstract protected void readInternal(byte[] b, int offset, int length)
-       throws IOException;
+  abstract protected void readInternal(byte[] b, int offset, int length) throws IOException;
 
   abstract public void close() throws IOException;
 
@@ -181,14 +173,15 @@ abstract public class InputStream implements Cloneable {
 
   public final void seek(long pos) throws IOException {
     if (pos >= bufferStart && pos < (bufferStart + bufferLength))
-      bufferPosition = (int)(pos - bufferStart);  // seek within buffer
+      bufferPosition = (int) (pos - bufferStart); // seek within buffer
     else {
       bufferStart = pos;
       bufferPosition = 0;
-      bufferLength = 0;				  // trigger refill() on read()
+      bufferLength = 0; // trigger refill() on read()
       seekInternal(pos);
     }
   }
+
   abstract protected void seekInternal(long pos) throws IOException;
 
   public final long length() {
@@ -198,8 +191,9 @@ abstract public class InputStream implements Cloneable {
   public Object clone() {
     InputStream clone = null;
     try {
-      clone = (InputStream)super.clone();
-    } catch (CloneNotSupportedException e) {}
+      clone = (InputStream) super.clone();
+    } catch (CloneNotSupportedException e) {
+    }
 
     if (buffer != null) {
       clone.buffer = new byte[BUFFER_SIZE];

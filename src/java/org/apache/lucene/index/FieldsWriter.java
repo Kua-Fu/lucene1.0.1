@@ -67,9 +67,8 @@ final class FieldsWriter {
   private FieldInfos fieldInfos;
   private OutputStream fieldsStream;
   private OutputStream indexStream;
-  
-  FieldsWriter(Directory d, String segment, FieldInfos fn)
-       throws IOException {
+
+  FieldsWriter(Directory d, String segment, FieldInfos fn) throws IOException {
     fieldInfos = fn;
     fieldsStream = d.createFile(segment + ".fdt");
     indexStream = d.createFile(segment + ".fdx");
@@ -82,28 +81,28 @@ final class FieldsWriter {
 
   final void addDocument(Document doc) throws IOException {
     indexStream.writeLong(fieldsStream.getFilePointer());
-    
+
     int storedCount = 0;
-    Enumeration fields  = doc.fields();
+    Enumeration fields = doc.fields();
     while (fields.hasMoreElements()) {
-      Field field = (Field)fields.nextElement();
+      Field field = (Field) fields.nextElement();
       if (field.isStored())
-	storedCount++;
+        storedCount++;
     }
     fieldsStream.writeVInt(storedCount);
-    
-    fields  = doc.fields();
+
+    fields = doc.fields();
     while (fields.hasMoreElements()) {
-      Field field = (Field)fields.nextElement();
+      Field field = (Field) fields.nextElement();
       if (field.isStored()) {
-	fieldsStream.writeVInt(fieldInfos.fieldNumber(field.name()));
+        fieldsStream.writeVInt(fieldInfos.fieldNumber(field.name()));
 
-	byte bits = 0;
-	if (field.isTokenized())
-	  bits |= 1;
-	fieldsStream.writeByte(bits);
+        byte bits = 0;
+        if (field.isTokenized())
+          bits |= 1;
+        fieldsStream.writeByte(bits);
 
-	fieldsStream.writeString(field.stringValue());
+        fieldsStream.writeString(field.stringValue());
       }
     }
   }

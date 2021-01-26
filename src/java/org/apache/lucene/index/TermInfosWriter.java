@@ -58,8 +58,10 @@ import java.io.IOException;
 import org.apache.lucene.store.OutputStream;
 import org.apache.lucene.store.Directory;
 
-/** This stores a monotonically increasing set of <Term, TermInfo> pairs in a
-  Directory.  A TermInfos can be written once, in order.  */
+/**
+ * This stores a monotonically increasing set of <Term, TermInfo> pairs in a
+ * Directory. A TermInfos can be written once, in order.
+ */
 
 final class TermInfosWriter {
   private FieldInfos fieldInfos;
@@ -67,38 +69,36 @@ final class TermInfosWriter {
   private Term lastTerm = new Term("", "");
   private TermInfo lastTi = new TermInfo();
   private int size = 0;
-  
+
   static final int INDEX_INTERVAL = 128;
   private long lastIndexPointer = 0;
   private boolean isIndex = false;
 
   private TermInfosWriter other = null;
 
-  TermInfosWriter(Directory directory, String segment, FieldInfos fis)
-       throws IOException, SecurityException {
+  TermInfosWriter(Directory directory, String segment, FieldInfos fis) throws IOException, SecurityException {
     initialize(directory, segment, fis, false);
     other = new TermInfosWriter(directory, segment, fis, true);
     other.other = this;
   }
 
-  private TermInfosWriter(Directory directory, String segment, FieldInfos fis,
-			  boolean isIndex) throws IOException {
+  private TermInfosWriter(Directory directory, String segment, FieldInfos fis, boolean isIndex) throws IOException {
     initialize(directory, segment, fis, isIndex);
   }
 
-  private void initialize(Directory directory, String segment, FieldInfos fis,
-		     boolean isi) throws IOException {
+  private void initialize(Directory directory, String segment, FieldInfos fis, boolean isi) throws IOException {
     fieldInfos = fis;
     isIndex = isi;
     output = directory.createFile(segment + (isIndex ? ".tii" : ".tis"));
-    output.writeInt(0);				  // leave space for size
+    output.writeInt(0); // leave space for size
   }
 
-  /** Adds a new <Term, TermInfo> pair to the set.
-    Term must be lexicographically greater than all previous Terms added.
-    TermInfo pointers must be positive and greater than all previous.*/
-  final void add(Term term, TermInfo ti)
-       throws IOException, SecurityException {
+  /**
+   * Adds a new <Term, TermInfo> pair to the set. Term must be lexicographically
+   * greater than all previous Terms added. TermInfo pointers must be positive and
+   * greater than all previous.
+   */
+  final void add(Term term, TermInfo ti) throws IOException, SecurityException {
     if (!isIndex && term.compareTo(lastTerm) <= 0)
       throw new IOException("term out of order");
     if (ti.freqPointer < lastTi.freqPointer)
@@ -107,10 +107,10 @@ final class TermInfosWriter {
       throw new IOException("proxPointer out of order");
 
     if (!isIndex && size % INDEX_INTERVAL == 0)
-      other.add(lastTerm, lastTi);		  // add an index term
+      other.add(lastTerm, lastTi); // add an index term
 
-    writeTerm(term);				  // write term
-    output.writeVInt(ti.docFreq);		  // write doc freq
+    writeTerm(term); // write term
+    output.writeVInt(ti.docFreq); // write doc freq
     output.writeVLong(ti.freqPointer - lastTi.freqPointer); // write pointers
     output.writeVLong(ti.proxPointer - lastTi.proxPointer);
 
@@ -123,14 +123,13 @@ final class TermInfosWriter {
     size++;
   }
 
-  private final void writeTerm(Term term)
-       throws IOException {
+  private final void writeTerm(Term term) throws IOException {
     int start = stringDifference(lastTerm.text, term.text);
     int length = term.text.length() - start;
-    
-    output.writeVInt(start);			  // write shared prefix length
-    output.writeVInt(length);			  // write delta length
-    output.writeChars(term.text, start, length);  // write delta chars
+
+    output.writeVInt(start); // write shared prefix length
+    output.writeVInt(length); // write delta length
+    output.writeChars(term.text, start, length); // write delta chars
 
     output.writeVInt(fieldInfos.fieldNumber(term.field)); // write field num
 
@@ -143,16 +142,16 @@ final class TermInfosWriter {
     int len = len1 < len2 ? len1 : len2;
     for (int i = 0; i < len; i++)
       if (s1.charAt(i) != s2.charAt(i))
-	return i;
+        return i;
     return len;
   }
 
   /** Called to complete TermInfos creation. */
   final void close() throws IOException, SecurityException {
-    output.seek(0);				  // write size at start
+    output.seek(0); // write size at start
     output.writeInt(size);
     output.close();
-    
+
     if (!isIndex)
       other.close();
   }

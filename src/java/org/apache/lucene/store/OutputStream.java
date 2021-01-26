@@ -66,8 +66,8 @@ abstract public class OutputStream {
   final static int BUFFER_SIZE = 1024;
 
   private final byte[] buffer = new byte[BUFFER_SIZE];
-  private long bufferStart = 0;			  // position in file of buffer
-  private int bufferPosition = 0;		  // position in buffer
+  private long bufferStart = 0; // position in file of buffer
+  private int bufferPosition = 0; // position in buffer
 
   /** OutputStream-like methods @see java.io.InputStream */
   public final void writeByte(byte b) throws IOException {
@@ -82,18 +82,18 @@ abstract public class OutputStream {
   }
 
   public final void writeInt(int i) throws IOException {
-    writeByte((byte)(i >> 24));
-    writeByte((byte)(i >> 16));
-    writeByte((byte)(i >>  8));
+    writeByte((byte) (i >> 24));
+    writeByte((byte) (i >> 16));
+    writeByte((byte) (i >> 8));
     writeByte((byte) i);
   }
 
   public final void writeVInt(int i) throws IOException {
     while ((i & ~0x7F) != 0) {
-      writeByte((byte)((i & 0x7f) | 0x80));
+      writeByte((byte) ((i & 0x7f) | 0x80));
       i >>>= 7;
     }
-    writeByte((byte)i);
+    writeByte((byte) i);
   }
 
   public final void writeLong(long i) throws IOException {
@@ -103,10 +103,10 @@ abstract public class OutputStream {
 
   public final void writeVLong(long i) throws IOException {
     while ((i & ~0x7F) != 0) {
-      writeByte((byte)((i & 0x7f) | 0x80));
+      writeByte((byte) ((i & 0x7f) | 0x80));
       i >>>= 7;
     }
-    writeByte((byte)i);
+    writeByte((byte) i);
   }
 
   public final void writeString(String s) throws IOException {
@@ -115,20 +115,19 @@ abstract public class OutputStream {
     writeChars(s, 0, length);
   }
 
-  public final void writeChars(String s, int start, int length)
-       throws IOException {
+  public final void writeChars(String s, int start, int length) throws IOException {
     final int end = start + length;
     for (int i = start; i < end; i++) {
-      final int code = (int)s.charAt(i);
+      final int code = (int) s.charAt(i);
       if (code >= 0x01 && code <= 0x7F)
-	writeByte((byte)code);
+        writeByte((byte) code);
       else if (((code >= 0x80) && (code <= 0x7FF)) || code == 0) {
-	writeByte((byte)(0xC0 | (code >> 6)));
-	writeByte((byte)(0x80 | (code & 0x3F)));
+        writeByte((byte) (0xC0 | (code >> 6)));
+        writeByte((byte) (0x80 | (code & 0x3F)));
       } else {
-	writeByte((byte)(0xE0 | (code >>> 12)));
-	writeByte((byte)(0x80 | ((code >> 6) & 0x3F)));
-	writeByte((byte)(0x80 | (code & 0x3F)));
+        writeByte((byte) (0xE0 | (code >>> 12)));
+        writeByte((byte) (0x80 | ((code >> 6) & 0x3F)));
+        writeByte((byte) (0x80 | (code & 0x3F)));
       }
     }
   }
@@ -156,6 +155,5 @@ abstract public class OutputStream {
   }
 
   abstract public long length() throws IOException;
-
 
 }
