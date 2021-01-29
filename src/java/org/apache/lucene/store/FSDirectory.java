@@ -65,52 +65,59 @@ import org.apache.lucene.store.InputStream;
 import org.apache.lucene.store.OutputStream;
 
 /**
-  Straightforward implementation of Directory as a directory of files.
-    @see Directory
-    @author Doug Cutting
-*/
+ * Straightforward implementation of Directory as a directory of files.
+ * 
+ * @see Directory
+ * @author Doug Cutting
+ */
 
 final public class FSDirectory extends Directory {
-  /** This cache of directories ensures that there is a unique Directory
-   * instance per path, so that synchronization on the Directory can be used to
-   * synchronize access between readers and writers.
+  /**
+   * This cache of directories ensures that there is a unique Directory instance
+   * per path, so that synchronization on the Directory can be used to synchronize
+   * access between readers and writers.
    *
    * This should be a WeakHashMap, so that entries can be GC'd, but that would
-   * require Java 1.2.  Instead we use refcounts...  */
+   * require Java 1.2. Instead we use refcounts...
+   */
   private static final Hashtable DIRECTORIES = new Hashtable();
 
-  /** Returns the directory instance for the named location.
+  /**
+   * Returns the directory instance for the named location.
    * 
-   * <p>Directories are cached, so that, for a given canonical path, the same
-   * FSDirectory instance will always be returned.  This permits
-   * synchronization on directories.
+   * <p>
+   * Directories are cached, so that, for a given canonical path, the same
+   * FSDirectory instance will always be returned. This permits synchronization on
+   * directories.
    * 
-   * @param path the path to the directory.
+   * @param path   the path to the directory.
    * @param create if true, create, or erase any existing contents.
-   * @returns the FSDirectory for the named file.  */
-  public static FSDirectory getDirectory(String path, boolean create)
-      throws IOException {
+   * @returns the FSDirectory for the named file.
+   */
+  public static FSDirectory getDirectory(String path, boolean create) throws IOException {
     return getDirectory(new File(path), create);
   }
 
-  /** Returns the directory instance for the named location.
+  /**
+   * Returns the directory instance for the named location.
    * 
-   * <p>Directories are cached, so that, for a given canonical path, the same
-   * FSDirectory instance will always be returned.  This permits
-   * synchronization on directories.
+   * <p>
+   * Directories are cached, so that, for a given canonical path, the same
+   * FSDirectory instance will always be returned. This permits synchronization on
+   * directories.
    * 
-   * @param file the path to the directory.
+   * @param file   the path to the directory.
    * @param create if true, create, or erase any existing contents.
-   * @returns the FSDirectory for the named file.  */
-  public static FSDirectory getDirectory(File file, boolean create)
-    throws IOException {
+   * @returns the FSDirectory for the named file.
+   */
+  public static FSDirectory getDirectory(File file, boolean create) throws IOException {
     file = new File(file.getCanonicalPath());
     FSDirectory dir;
     synchronized (DIRECTORIES) {
-      dir = (FSDirectory)DIRECTORIES.get(file);
+      dir = (FSDirectory) DIRECTORIES.get(file);
       if (dir == null) {
-	dir = new FSDirectory(file, create);
-	DIRECTORIES.put(file, dir);
+        dir = new FSDirectory(file, create);
+        DIRECTORIES.put(file, dir);
       }
     }
     synchronized (dir) {
@@ -129,12 +136,12 @@ final public class FSDirectory extends Directory {
     if (!directory.isDirectory())
       throw new IOException(path + " not a directory");
 
-    if (create) {				  // clear old files
+    if (create) { // clear old files
       String[] files = directory.list();
       for (int i = 0; i < files.length; i++) {
-	File file = new File(directory, files[i]);
-	if (!file.delete())
-	  throw new IOException("couldn't delete " + files[i]);
+        File file = new File(directory, files[i]);
+        if (!file.delete())
+          throw new IOException("couldn't delete " + files[i]);
       }
     }
 
@@ -144,22 +151,21 @@ final public class FSDirectory extends Directory {
   public final String[] list() throws IOException {
     return directory.list();
   }
-       
+
   /** Returns true iff a file with the given name exists. */
   public final boolean fileExists(String name) throws IOException {
     File file = new File(directory, name);
     return file.exists();
   }
-       
+
   /** Returns the time the named file was last modified. */
   public final long fileModified(String name) throws IOException {
     File file = new File(directory, name);
     return file.lastModified();
   }
-       
+
   /** Returns the time the named file was last modified. */
-  public static final long fileModified(File directory, String name)
-       throws IOException {
+  public static final long fileModified(File directory, String name) throws IOException {
     File file = new File(directory, name);
     return file.lastModified();
   }
@@ -178,25 +184,28 @@ final public class FSDirectory extends Directory {
   }
 
   /** Renames an existing file in the directory. */
-  public final synchronized void renameFile(String from, String to)
-      throws IOException {
+  public final synchronized void renameFile(String from, String to) throws IOException {
     File old = new File(directory, from);
     File nu = new File(directory, to);
 
-    /* This is not atomic.  If the program crashes between the call to
-       delete() and the call to renameTo() then we're screwed, but I've
-       been unable to figure out how else to do this... */
+    /*
+     * This is not atomic. If the program crashes between the call to delete() and
+     * the call to renameTo() then we're screwed, but I've been unable to figure out
+     * how else to do this...
+     */
 
     if (nu.exists())
       if (!nu.delete())
-	throw new IOException("couldn't delete " + to);
+        throw new IOException("couldn't delete " + to);
 
     if (!old.renameTo(nu))
       throw new IOException("couldn't rename " + from + " to " + to);
   }
 
-  /** Creates a new, empty file in the directory with the given name.
-      Returns a stream writing this file. */
+  /**
+   * Creates a new, empty file in the directory with the given name. Returns a
+   * stream writing this file.
+   */
   public final OutputStream createFile(String name) throws IOException {
     return new FSOutputStream(new File(directory, name));
   }
@@ -210,16 +219,16 @@ final public class FSDirectory extends Directory {
   public final synchronized void close() throws IOException {
     if (--refCount <= 0) {
       synchronized (DIRECTORIES) {
-	DIRECTORIES.remove(directory);
+        DIRECTORIES.remove(directory);
       }
     }
   }
 }
 
-
 final class FSInputStream extends InputStream {
   private class Descriptor extends RandomAccessFile {
     public long position;
+
     public Descriptor(File file, String mode) throws IOException {
       super(file, mode);
     }
@@ -234,21 +243,20 @@ final class FSInputStream extends InputStream {
   }
 
   /** InputStream methods */
-  protected final void readInternal(byte[] b, int offset, int len)
-       throws IOException {
+  protected final void readInternal(byte[] b, int offset, int len) throws IOException {
     synchronized (file) {
       long position = getFilePointer();
       if (position != file.position) {
-	file.seek(position);
-	file.position = position;
+        file.seek(position);
+        file.position = position;
       }
       int total = 0;
       do {
-	int i = file.read(b, offset+total, len-total);
-	if (i == -1)
-	  throw new IOException("read past EOF");
-	file.position += i;
-	total += i;
+        int i = file.read(b, offset + total, len - total);
+        if (i == -1)
+          throw new IOException("read past EOF");
+        file.position += i;
+        total += i;
       } while (total < len);
     }
   }
@@ -263,16 +271,15 @@ final class FSInputStream extends InputStream {
   }
 
   protected final void finalize() throws IOException {
-    close();					  // close the file 
+    close(); // close the file
   }
 
   public Object clone() {
-    FSInputStream clone = (FSInputStream)super.clone();
+    FSInputStream clone = (FSInputStream) super.clone();
     clone.isClone = true;
     return clone;
   }
 }
-
 
 final class FSOutputStream extends OutputStream {
   RandomAccessFile file = null;
@@ -287,6 +294,7 @@ final class FSOutputStream extends OutputStream {
   public final void flushBuffer(byte[] b, int size) throws IOException {
     file.write(b, 0, size);
   }
+
   public final void close() throws IOException {
     super.close();
     file.close();
@@ -297,12 +305,13 @@ final class FSOutputStream extends OutputStream {
     super.seek(pos);
     file.seek(pos);
   }
+
   public final long length() throws IOException {
     return file.length();
   }
 
   protected final void finalize() throws IOException {
-    file.close();				  // close the file 
+    file.close(); // close the file
   }
 
 }

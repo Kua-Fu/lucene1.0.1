@@ -85,9 +85,9 @@ final class FieldInfos {
 
   /** Adds field info for a Document. */
   final void add(Document doc) {
-    Enumeration fields  = doc.fields();
+    Enumeration fields = doc.fields();
     while (fields.hasMoreElements()) {
-      Field field = (Field)fields.nextElement();
+      Field field = (Field) fields.nextElement();
       add(field.name(), field.isIndexed());
     }
   }
@@ -105,9 +105,7 @@ final class FieldInfos {
     if (fi == null)
       addInternal(name, isIndexed);
     else if (fi.isIndexed != isIndexed)
-      throw new IllegalStateException("field " + name +
-				      (fi.isIndexed ? " must" : " cannot") +
-				      " be an indexed field.");
+      throw new IllegalStateException("field " + name + (fi.isIndexed ? " must" : " cannot") + " be an indexed field.");
   }
 
   private final void addInternal(String name, boolean isIndexed) {
@@ -125,7 +123,7 @@ final class FieldInfos {
   }
 
   final FieldInfo fieldInfo(String fieldName) {
-    return (FieldInfo)byName.get(fieldName);
+    return (FieldInfo) byName.get(fieldName);
   }
 
   final String fieldName(int fieldNumber) {
@@ -133,7 +131,7 @@ final class FieldInfos {
   }
 
   final FieldInfo fieldInfo(int fieldNumber) {
-    return (FieldInfo)byNumber.elementAt(fieldNumber);
+    return (FieldInfo) byNumber.elementAt(fieldNumber);
   }
 
   final int size() {
@@ -154,14 +152,15 @@ final class FieldInfos {
     for (int i = 0; i < size(); i++) {
       FieldInfo fi = fieldInfo(i);
       output.writeString(fi.name);
-      output.writeByte((byte)(fi.isIndexed ? 1 : 0));
+      output.writeByte((byte) (fi.isIndexed ? 1 : 0));
     }
   }
 
   private final void read(InputStream input) throws IOException {
     int size = input.readVInt();
-    for (int i = 0; i < size; i++)
-      addInternal(input.readString().intern(),
-		  input.readByte() != 0);
+    for (int i = 0; i < size; i++) {
+      addInternal(input.readString().intern(), input.readByte() != 0);
+    }
+
   }
 }
